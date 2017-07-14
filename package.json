@@ -4,6 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "crawler": "^1.0.5"
+    "crawler": "^1.0.5",
+    "parse-link-header": "^1.0.1",
+    "seenreq": "^0.1.11",
+    "url-pattern": "^1.0.3"
   }
 }
