@@ -23,6 +23,7 @@
 
 const BlockCrawler = require('./crawler');
 const Base64 = require('js-base64').Base64;
+const axios = require('axios');
 
 const argv = require('yargs')
   .option('quiet', {
@@ -38,6 +39,10 @@ const argv = require('yargs')
     type: 'string',
     default: [],
   })
+  .option('collector', {
+    type: 'string',
+    description: 'Post JSON observations to this URL'
+  })
   .demandCommand(1)
   .argv;
 
@@ -52,5 +57,14 @@ bc.on('found', res => {
     res.urlEncoded = Base64.encode(res.url);
     delete res.url;
   }
+
   console.log(JSON.stringify(res));
+
+  if (argv.collector)
+    axios.post(argv.collector, res)
+      .then(function (response) {
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
 });

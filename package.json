@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.16.2",
     "crawler": "^1.0.5",
     "js-base64": "^2.1.9",
     "parse-link-header": "^1.0.1",
