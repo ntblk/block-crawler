@@ -22,4 +22,6 @@ Results are produced in a simple streaming JSON annotation format which identifi
 
 ## Status and contributor guidelines
 
-This tool is under development and not yet recommended for use in production or as a reporting tool for transparency work.
+This tool is under development and not yet recommended for use in production.
+
+_block-crawler_ is an Open Source project made available by the [NetBlocks.org project](https://netblocks.org) and contributors under the terms of the MIT license.
