@@ -28,10 +28,15 @@ const argv = require('yargs')
     type: 'boolean',
     default: false
   })
+  .option('mode', {
+    type: 'string',
+    default: [],
+  })
   .demandCommand(1)
   .argv;
 
 var bc = new BlockCrawler();
+bc.modes = argv.mode;
 bc.verbose = !argv.quiet;
 
 argv._.forEach(url => bc.queue(url));

@@ -46,6 +46,7 @@ class BlockCrawler extends EventEmitter {
 
   init() {
     this.seen = new seenreq();
+    this.modes = [];
 
     this.c = new Crawler({
         maxConnections : 10,
@@ -126,29 +127,32 @@ class BlockCrawler extends EventEmitter {
   // Test and possible transform url object
   // TODO: make arg immutable
   shouldCrawl (uri) {
+    if (this.modes.indexOf('reddit') !== -1) {
+      // TODO: Use the pattern for this instead?
+      if (uri.hostname === 'reddit.com' || uri.hostname === 'www.reddit.com') {
+        var pattern = new UrlPattern('/r/:subreddit(/)');
+
+        // https://github.com/snd/url-pattern
+        var parts = pattern.match(uri.pathname);
+
+        // Upgrade to HTTPS
+        if (uri.protocol === 'http:')
+          uri.protocol = 'https:';
+
+        return !!parts;
+      }
+
+      if (uri.hostname === 'redditlist.com') {
+        // TODO: just use a regex instead of pattern?
+        var pattern = new UrlPattern('/nsfw(?page=:pg)');
+        var parts = pattern.match(uri.pathname);
+        return !!parts;
+      }
+
+      return false;
+    }
+
     return true;
-    // TODO: Use the pattern for this instead?
-    if (uri.hostname === 'reddit.com' || uri.hostname === 'www.reddit.com') {
-      var pattern = new UrlPattern('/r/:subreddit(/)');
-
-      // https://github.com/snd/url-pattern
-      var parts = pattern.match(uri.pathname);
-
-      // Upgrade to HTTPS
-      if (uri.protocol === 'http:')
-        uri.protocol = 'https:';
-
-      return !!parts;
-    }
-
-    if (uri.hostname === 'redditlist.com') {
-      // TODO: just use a regex instead of pattern?
-      var pattern = new UrlPattern('/nsfw(?page=:pg)');
-      var parts = pattern.match(uri.pathname);
-      return !!parts;
-    }
-
-    return false;
   }
 
   enqueue (href, res) {
