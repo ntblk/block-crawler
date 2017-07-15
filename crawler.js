@@ -25,13 +25,13 @@
 A crawler module to detect legally restricted web content:
   https://tools.ietf.org/html/rfc7725
 */
-
 const Crawler = require('crawler');
 const seenreq = require('seenreq');
 const URL = require('url');
 const parseLinkHeader = require('parse-link-header');
 const UrlPattern = require('url-pattern');
 const EventEmitter = require('events');
+const typeis = require('type-is').is;
 
 class BlockCrawler extends EventEmitter {
   constructor() {
@@ -90,6 +90,11 @@ class BlockCrawler extends EventEmitter {
 
   scrape (res) {
     var $ = res.$;
+    //console.log($.text());
+    var content_type = res.headers['content-type'.toLowerCase()];
+    if (!typeis(content_type,['html','xhtml'])){
+      return;
+    }
     //console.log($("title").text());
     $('a').each((index, node) => {
       var $node = $(node);

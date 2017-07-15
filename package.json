@@ -8,6 +8,7 @@
     "parse-link-header": "^1.0.1",
     "seenreq": "^0.1.11",
     "url-pattern": "^1.0.3",
-    "yargs": "^8.0.2"
+    "yargs": "^8.0.2",
+    "type-is": "^1.6.14"
   }
 }
