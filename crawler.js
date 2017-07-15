@@ -52,7 +52,7 @@ class BlockCrawler extends EventEmitter {
 
   processResponse (error, res, done) {
     if (error) {
-      console.log('error: ' + error);
+      console.error('error: ' + error);
     } else {
       // https://tools.ietf.org/html/rfc7725
       if (res.statusCode === 451) {
@@ -157,7 +157,8 @@ class BlockCrawler extends EventEmitter {
       return;
 
     var full_url = uri.href;
-    console.log(full_url);
+    // TODO: Put this behind a 'verbose' flag
+    console.error(full_url);
     try {
       if (this.seen.exists(full_url))
         return;
