@@ -171,8 +171,8 @@ class BlockCrawler extends EventEmitter {
       return;
 
     var full_url = uri.href;
-    // TODO: Put this behind a 'verbose' flag
-    console.error(full_url);
+    if (this.verbose)
+      console.error(full_url);
     try {
       if (this.seen.exists(full_url))
         return;

@@ -23,10 +23,16 @@
 
 const BlockCrawler = require('./crawler');
 const argv = require('yargs')
+  .option('quiet', {
+    alias: 'q',
+    type: 'boolean',
+    default: false
+  })
   .demandCommand(1)
   .argv;
 
 var bc = new BlockCrawler();
+bc.verbose = !argv.quiet;
 
 argv._.forEach(url => bc.queue(url));
 
