@@ -119,6 +119,23 @@ class BlockCrawler extends EventEmitter {
       var href = href.split('#')[0];
       this.enqueue(href, res);
     });
+    $('iframe').each((index, node) => {
+      var $node = $(node);
+      /* No rel attribute in iframe specs.
+      * var rel = $node.attr('rel') || '';
+      * rel = rel.split(/ +/);
+      * if (rel.indexOf('nofollow') !== -1)
+      *   return;
+      */
+      var src = $node.attr('src');
+      if(!src)
+        return;
+      var src = src.split('#')[0];
+      this.enqueue(src, res);
+      
+      //TODO check srcdoc attribute
+
+    });
   }
 
   // Test and possible transform url object
