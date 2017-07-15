@@ -28,7 +28,7 @@ A crawler module to detect legally restricted web content:
 
 const Crawler = require('crawler');
 const seenreq = require('seenreq');
-const { URL } = require('url');
+const URL = require('url');
 const parseLinkHeader = require('parse-link-header');
 const UrlPattern = require('url-pattern');
 const EventEmitter = require('events');
@@ -145,7 +145,7 @@ class BlockCrawler extends EventEmitter {
     //var full_url = url.resolve(base_url, href);
 
     try {
-      var uri = new URL(href, res.request.uri.href);
+      var uri = URL.parse(URL.resolve(res.request.uri.href, href));
     } catch (err) {
       // parse error
       return;
