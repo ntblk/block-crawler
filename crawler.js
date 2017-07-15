@@ -115,7 +115,10 @@ class BlockCrawler extends EventEmitter {
         rel = rel.split(/ +/);
         if (rel.indexOf('nofollow') !== -1)
           return;
-        var href = $node.attr('href').split('#')[0];
+        var href = $node.attr('href');
+        if(!href)
+          return;
+        var href = href.split('#')[0];
       } catch (err) {
         // TODO: Handle malformed URLs instead of this catch-all
         return;
