@@ -33,6 +33,11 @@ const UrlPattern = require('url-pattern');
 const EventEmitter = require('events');
 const typeis = require('type-is').is;
 
+const AGENT = {
+  name: "block-crawler",
+  version: "0.1",
+};
+
 class BlockCrawler extends EventEmitter {
   constructor() {
     super();
@@ -58,12 +63,16 @@ class BlockCrawler extends EventEmitter {
       if (res.statusCode === 451) {
         // NOTE: reddit.com 451 pages deliver HTML body without content-type header
 
+        // Field names loosely inspired by HAR 1.2. Spec. Fields generally optional.
         var o = {
           // TODO: Use precise request date/time
           date: new Date(),
+          creator: AGENT.name,
+          version: AGENT.version,
+          //reporter:,
           url: res.request.uri.href,
-          statusCode: res.statusCode,
-          statusMessage: res.statusMessage
+          status: res.statusCode,
+          statusText: res.statusMessage,
         };
 
         // When an entity blocks access to a resource and returns status 451, it
