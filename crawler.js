@@ -164,7 +164,6 @@ class BlockCrawler extends EventEmitter {
       return;
     }
 
-    //console.error('enqueue: ' + full_url);
     this.c.queue({
       uri: full_url,
       referer: base_url,
