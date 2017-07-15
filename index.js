@@ -22,9 +22,15 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 const BlockCrawler = require('./crawler');
+const Base64 = require('js-base64').Base64;
+
 const argv = require('yargs')
   .option('quiet', {
     alias: 'q',
+    type: 'boolean',
+    default: false
+  })
+  .option('obfuscate', {
     type: 'boolean',
     default: false
   })
@@ -42,5 +48,9 @@ bc.verbose = !argv.quiet;
 argv._.forEach(url => bc.queue(url));
 
 bc.on('found', res => {
+  if (argv.obfuscate) {
+    res.urlEncoded = Base64.encode(res.url);
+    delete res.url;
+  }
   console.log(JSON.stringify(res));
 });

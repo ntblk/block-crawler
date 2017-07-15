@@ -5,10 +5,11 @@
   "license": "MIT",
   "dependencies": {
     "crawler": "^1.0.5",
+    "js-base64": "^2.1.9",
     "parse-link-header": "^1.0.1",
     "seenreq": "^0.1.11",
+    "type-is": "^1.6.14",
     "url-pattern": "^1.0.3",
-    "yargs": "^8.0.2",
-    "type-is": "^1.6.14"
+    "yargs": "^8.0.2"
   }
 }
