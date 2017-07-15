@@ -51,6 +51,7 @@ class BlockCrawler extends EventEmitter {
     this.c = new Crawler({
         maxConnections : 10,
         timeout : 15000,
+        maxRedirects : 3,
         // This will be called for each crawled page
         callback : this.processResponse.bind(this)
     });
