@@ -163,15 +163,16 @@ class BlockCrawler extends EventEmitter {
 
     // TODO: Limit domain, URL etc.
 
-    var base_url = res.request.uri.href;
+    var base_url = res ? res.request.uri.href : '';
     //var full_url = res.request.uri.resolve(href);
     // TODO: Respect meta base URL tag?
     //var full_url = url.resolve(base_url, href);
 
     try {
-      var uri = URL.parse(URL.resolve(res.request.uri.href, href));
+      var uri = URL.parse(URL.resolve(base_url, href));
     } catch (err) {
       // parse error
+      console.error(err);
       return;
     }
 
@@ -179,8 +180,6 @@ class BlockCrawler extends EventEmitter {
       return;
 
     var full_url = uri.href;
-    if (this.verbose)
-      console.error(full_url);
     try {
       if (this.seen.exists(full_url))
         return;
@@ -189,6 +188,10 @@ class BlockCrawler extends EventEmitter {
       return;
     }
 
+    if (this.verbose)
+      console.error(full_url);
+
+    // FIXME: Avoid sending empty string as referer when !req
     this.c.queue({
       uri: full_url,
       referer: base_url,
@@ -196,7 +199,7 @@ class BlockCrawler extends EventEmitter {
   }
 
   queue (url) {
-    this.c.queue(url);
+    this.enqueue(url);
   }
 }
 
