@@ -22,11 +22,14 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 const BlockCrawler = require('./crawler');
+const argv = require('yargs')
+  .demandCommand(1)
+  .argv;
 
-var myCrawler = new BlockCrawler();
-//c.queue('https://www.reddit.com/r/tw' + 'inks/');
-myCrawler.queue('http://redditlist.com/nsfw');
+var bc = new BlockCrawler();
 
-myCrawler.on('found', res => {
-  console.log(res);
+argv._.forEach(url => bc.queue(url));
+
+bc.on('found', res => {
+  console.log(JSON.stringify(res));
 });
