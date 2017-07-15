@@ -112,6 +112,7 @@ class BlockCrawler extends EventEmitter {
   // Test and possible transform url object
   // TODO: make arg immutable
   shouldCrawl (uri) {
+    return true;
     // TODO: Use the pattern for this instead?
     if (uri.hostname === 'reddit.com' || uri.hostname === 'www.reddit.com') {
       var pattern = new UrlPattern('/r/:subreddit(/)');
@@ -137,6 +138,7 @@ class BlockCrawler extends EventEmitter {
   }
 
   enqueue (href, res) {
+
     // TODO: Limit domain, URL etc.
 
     var base_url = res.request.uri.href;
@@ -155,7 +157,7 @@ class BlockCrawler extends EventEmitter {
       return;
 
     var full_url = uri.href;
-
+    console.log(full_url);
     try {
       if (this.seen.exists(full_url))
         return;
