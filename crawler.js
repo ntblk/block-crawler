@@ -155,6 +155,10 @@ class BlockCrawler extends EventEmitter {
 
       return false;
     }
+    if(uri.hostname=="")
+      return false;
+    if(uri.protocol!='http:' && uri.protocol!='https:')
+      return false;
 
     return true;
   }
