@@ -62,7 +62,7 @@ class BlockCrawler extends EventEmitter {
       console.error('error: ' + error);
     } else {
       // https://tools.ietf.org/html/rfc7725
-      if (res.statusCode === 451) {
+      if (res.statusCode !== 200) {
         // NOTE: reddit.com 451 pages deliver HTML body without content-type header
 
         // Field names loosely inspired by HAR 1.2. Spec. Fields generally optional.
@@ -102,6 +102,8 @@ class BlockCrawler extends EventEmitter {
   scrape (res) {
     var $ = res.$;
     //console.log($.text());
+
+    // TODO: Just rely on $ null-check instead of using content_type here?
     var content_type = res.headers['content-type'.toLowerCase()];
     if (!typeis(content_type,['html','xhtml'])){
       return;
