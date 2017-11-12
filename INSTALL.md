@@ -41,4 +41,4 @@ def store(start_response, environ):
 The results (only the HTTP errors) will appear in JSON format in
 /var/storage/store.log, for instance:
 
-{"date":"2017-11-11T12:10:07.314Z","creator":"block-crawler","version":"0.1","url":"http://httpstat.us/451","status":451,"statusText":"Unavailable For Legal Reasons"}
+{"date":"2017-11-11T12:10:07.314Z","creator":"block-crawler","version":"0.1","url":"https://httpbin.org/status/451","status":451,"statusText":"Unavailable For Legal Reasons"}
