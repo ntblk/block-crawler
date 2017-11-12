@@ -46,13 +46,18 @@ const argv = require('yargs')
   .demandCommand(1)
   .argv;
 
+
+var externalIP;
+
 var bc = new BlockCrawler();
 bc.modes = argv.mode;
 bc.verbose = !argv.quiet;
-
-argv._.forEach(url => bc.queue(url));
+bc.proxyUri = argv.proxy;
 
 bc.on('found', res => {
+
+  res.clientIP = externalIP;
+
   if (argv.obfuscate) {
     res.urlEncoded = Base64.encode(res.url);
     delete res.url;
@@ -67,4 +72,13 @@ bc.on('found', res => {
       .catch(function (error) {
         console.error(error);
       });
+});
+
+// TODO: Use same HTTP backend as crawler to determine IP
+// TODO: Don't hardcode IP discovery service
+axios.get('https://api.ipify.org')
+.then(res => {
+  externalIP = res.data;
+}).then(() => {
+  argv._.forEach(url => bc.queue(url));
 });
