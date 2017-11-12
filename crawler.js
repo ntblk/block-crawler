@@ -154,8 +154,11 @@ class BlockCrawler extends EventEmitter {
         var parts = pattern.match(uri.pathname);
 
         // Upgrade to HTTPS
+        // FIXME: Avoid this upgrade to detect middle-box blocking
         if (uri.protocol === 'http:')
           uri.protocol = 'https:';
+        //if (uri.protocol === 'https:')
+        //  uri.protocol = 'http:';
 
         return !!parts;
       }
