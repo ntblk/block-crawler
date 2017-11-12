@@ -52,6 +52,8 @@ class BlockCrawler extends EventEmitter {
         maxConnections : 10,
         timeout : 15000,
         maxRedirects : 3,
+        // FIXME: Make userAgent configurable. Some sites running ModSecurity don't accept with the default.
+        userAgent : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.89 Safari/537.36',
         // This will be called for each crawled page
         callback : this.processResponse.bind(this)
     });
