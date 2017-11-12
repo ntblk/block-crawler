@@ -20,6 +20,10 @@ Because HTTP 451 is typically used to 'geoblock' content, it is expected that va
 
 Results are produced in a simple streaming JSON annotation format which identifies the affected URL, observed status code and status text and optional blocking entity. A single report entity identifies a one HTTP request at a specific point in time observed from a single IP address.
 
+## Installing and running it
+
+See INSTALL.md
+
 ## Status and contributor guidelines
 
 This tool is under development and not yet recommended for use in production.
