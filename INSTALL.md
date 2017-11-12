@@ -3,7 +3,7 @@
 Pre-requisites
 --------------
 
-You need Node.js (version >= 8) and the npm package manager.
+You need Node.js (version >= 8) and npm or a compatible package manager.
 
 Installing dependencies
 -----------------------
