@@ -25,12 +25,14 @@
 A crawler module to detect legally restricted web content:
   https://tools.ietf.org/html/rfc7725
 */
-var supercrawler = require("supercrawler");
+const supercrawler = require("supercrawler");
 const URL = require('url');
 const parseLinkHeader = require('parse-link-header');
 const UrlPattern = require('url-pattern');
 const EventEmitter = require('events');
 const typeis = require('type-is').is;
+const cheerio = require("cheerio");
+const urlMod = require("url");
 
 const AGENT = {
   name: "block-crawler",
@@ -44,94 +46,10 @@ class BlockCrawler extends EventEmitter {
     this.init();
   }
 
-  init() {
-    this.modes = [];
-
-    this.c = new supercrawler.Crawler({
-
-        urlList: new supercrawler.RedisUrlList({
-            redis: {
-              port: 6379,
-              host: '127.0.0.1'
-            }
-        }), 
-        
-        interval: 500,
-        concurrentRequestsLimit: 5
-    });
-    
-    console.log("Installed: " + this.c);
-    
-    this.c.on("crawlurl", function(url) {
-        console.log("Crawling: " + url);
-    });
-    
-    var crwlr = this;
-    this.c.on("crawledurl", function(url, errorCode, statusCode) {
-        console.log("Crawled: " + url + " (" + statusCode + ")");
-        crwlr.processResponse(url, statusCode);
-    });
-    
-    this.c.on("httpError", function(err, url) {
-       console.log("Error: " + url + " (" + err.statusCode + ")"); 
-    });
-
-    var crwl = this.c;
-    this.c.on("urllistcomplete", function() {
-       console.log("Done");
-       crwl.stop(); 
-    });
-
-    this.c.addHandler("text/html", supercrawler.handlers.htmlLinkParser(
-
-    ));
-    this.c.addHandler(function (context) {
-      console.log("Processed " + context.url);
-    });
-    
-  }
-
-  processResponse (url, statusCode) {
-      // https://tools.ietf.org/html/rfc7725
-      if (statusCode === 451) {
-        // NOTE: reddit.com 451 pages deliver HTML body without content-type header
-    
-        // Field names loosely inspired by HAR 1.2. Spec. Fields generally optional.
-        var o = {
-          // TODO: Use precise request date/time
-          date: new Date(),
-          creator: AGENT.name,
-          version: AGENT.version,
-          //reporter:,
-          url: url,
-          status: statusCode,
-          statusText: "",
-        };
-    
-        // When an entity blocks access to a resource and returns status 451, it
-        // SHOULD include a "Link" HTTP header field [RFC5988]
-    
-        // statusCode: 451,
-        // statusMessage: 'Unavailable For Legal Reasons',
-        //   link: '<https://www.reddit.com>; rel="blocked-by"',
-    
-        // TODO
-        /*
-        var linkHeader = parseLinkHeader(res.headers['link']);
-        if (linkHeader && linkHeader['blocked-by'])
-          o.blockedBy = linkHeader['blocked-by'];
-        */
-    
-        this.emit('found', o);
-      }
-
-  }
-
-
   // Test and possible transform url object
   // TODO: make arg immutable
-  shouldCrawl (uri) {
-    if (this.modes.indexOf('reddit') !== -1) {
+  shouldCrawl(uri) {
+    if (undefined == this || this.modes.indexOf('reddit') !== -1) {
       // TODO: Use the pattern for this instead?
       if (uri.hostname === 'reddit.com' || uri.hostname === 'www.reddit.com') {
         var pattern = new UrlPattern('/r/:subreddit(/)');
@@ -147,26 +65,134 @@ class BlockCrawler extends EventEmitter {
         //  uri.protocol = 'http:';
 
         return !!parts;
-      }
-
-      if (uri.hostname === 'redditlist.com') {
+      } else if (uri.hostname === 'redditlist.com') {
         // TODO: just use a regex instead of pattern?
         var pattern = new UrlPattern('/nsfw(?page=:pg)');
         var parts = pattern.match(uri.pathname);
         return !!parts;
       }
 
-      return false;
+      // return false;
     }
-    if(uri.hostname=="")
+    if (uri.hostname == "")
       return false;
-    if(uri.protocol!='http:' && uri.protocol!='https:')
+    if (uri.protocol != 'http:' && uri.protocol != 'https:')
       return false;
-
     return true;
   }
 
-  enqueue (href, res) {
+  _htmllinkparser(opts) {
+    if (!opts) {
+      opts = {};
+    }
+    var shouldCrawl = this.shouldCrawl;
+    return function(context) {
+
+      var $;
+      $ = context.$ || cheerio.load(context.body);
+      context.$ = $;
+      return $("a[href], link[href][rel=alternate]").map(function() {
+        var $this,
+          targetHref,
+          absoluteTargetUrl,
+          urlObj,
+          protocol,
+          hostname;
+
+        $this = $(this);
+        targetHref = $this.attr("href");
+        absoluteTargetUrl = urlMod.resolve(context.url, targetHref);
+        urlObj = urlMod.parse(absoluteTargetUrl);
+        protocol = urlObj.protocol;
+        hostname = urlObj.hostname;
+
+
+        if (protocol !== "http:" && protocol !== "https:") {
+          return null;
+        }
+
+        if (!(shouldCrawl(URL.parse(context.url)))) {
+          return null;
+        }
+
+        return urlMod.format({
+          protocol: urlObj.protocol,
+          auth: urlObj.auth,
+          host: urlObj.host,
+          pathname: urlObj.pathname,
+          search: urlObj.search
+        });
+      }).get();
+    };
+  };
+
+  init() {
+    this.modes = [];
+
+    this.c = new supercrawler.Crawler({
+
+      // urlList: new supercrawler.RedisUrlList({
+      //   redis: {
+      //     port: 6379,
+      //     host: '127.0.0.1'
+      //   }
+      // }),
+
+      interval: 500,
+      concurrentRequestsLimit: 5
+    });
+
+    console.log("Installed: " + this.c);
+
+    this.c.addHandler("text/html", this._htmllinkparser({
+      // Restrict discovered links to the following hostnames.
+      hostnames: {
+        "reddit.com": new UrlPattern('/r/:subreddit(/)'),
+        "www.reddit.com": new UrlPattern('/r/:subreddit(/)'),
+        "redditlist.com": new UrlPattern('/nsfw(?page=:pg)'),
+        "dretzq.co.uk": null,
+        "httpbin.org": null
+      }
+    }));
+
+    var _crawler = this;
+    this.c.addHandler(function(context) {
+      if (context.response.statusCode == 451) {
+        var res = {
+          // TODO: Use precise request date/time
+          date: new Date(),
+          creator: AGENT.name,
+          version: AGENT.version,
+          url: context.url,
+          status: context.response.statusCode,
+          statusMessage: context.response.statusMessage
+        };
+
+        if ("link" in context.response.headers) {
+          var linkHeader = parseLinkHeader(context.response.headers['link']);
+          if (linkHeader && linkHeader['blocked-by']) {
+            res['blockedBy'] = linkHeader['blocked-by'].url;
+          }
+        }
+
+        _crawler.emit('found', res);
+
+      }
+    });
+
+    this.c.on("httpError", function(err, url) {
+      console.log("Error: " + url + " (" + err.statusCode + ")");
+    });
+
+    var crwl = this.c;
+    this.c.on("urllistcomplete", function() {
+      console.log("Done");
+      crwl.stop();
+    });
+
+  }
+
+  enqueue(href, res) {
 
     // TODO: Limit domain, URL etc.
 
@@ -196,13 +222,14 @@ class BlockCrawler extends EventEmitter {
     }));
   }
 
-  queue (url) {
+  queue(url) {
     this.enqueue(url);
   }
-  
+
   start() {
-      this.c.start();
+    this.c.start();
   }
+
 }
 
 module.exports = BlockCrawler;
