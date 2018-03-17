@@ -9,6 +9,7 @@
     "js-base64": "^2.1.9",
     "parse-link-header": "^1.0.1",
     "seenreq": "^0.1.11",
+    "supercrawler": "0",
     "type-is": "^1.6.14",
     "url-pattern": "^1.0.3",
     "yargs": "^8.0.2"
