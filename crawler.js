@@ -37,6 +37,7 @@ const AGENT = {
   version: "0.1",
 };
 
+
 class BlockCrawler extends EventEmitter {
   constructor() {
     super();
@@ -48,12 +49,12 @@ class BlockCrawler extends EventEmitter {
 
     this.c = new supercrawler.Crawler({
 
-        /*urlList: new supercrawler.RedisUrlList({
+        urlList: new supercrawler.RedisUrlList({
             redis: {
               port: 6379,
               host: '127.0.0.1'
             }
-        }), */
+        }), 
         
         interval: 500,
         concurrentRequestsLimit: 5

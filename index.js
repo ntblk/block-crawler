@@ -43,7 +43,7 @@ const argv = require('yargs')
     type: 'string',
     description: 'Post JSON observations to this URL'
   })
-  .demandCommand(1)
+  //.demandCommand(1)
   .argv;
 
 
@@ -81,6 +81,6 @@ axios.get('https://api.ipify.org')
   externalIP = res.data;
 }).then(() => {
   console.log("External IP: " + externalIP);
-  argv._.forEach(url => bc.queue(url));
+  //argv._.forEach(url => bc.queue(url));
   bc.start();
 });
