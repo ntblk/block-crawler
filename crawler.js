@@ -66,8 +66,10 @@ class BlockCrawler extends EventEmitter {
         console.log("Crawling: " + url);
     });
     
+    var crwlr = this;
     this.c.on("crawledurl", function(url, errorCode, statusCode) {
         console.log("Crawled: " + url + " (" + statusCode + ")");
+        crwlr.processResponse(url, statusCode);
     });
     
     this.c.on("httpError", function(err, url) {
@@ -89,14 +91,11 @@ class BlockCrawler extends EventEmitter {
     
   }
 
-  processResponse (error, res, done) {
-    if (error) {
-      console.error('error: ' + error);
-    } else {
+  processResponse (url, statusCode) {
       // https://tools.ietf.org/html/rfc7725
-      if (res.statusCode !== 200) {
+      if (statusCode === 451) {
         // NOTE: reddit.com 451 pages deliver HTML body without content-type header
-
+    
         // Field names loosely inspired by HAR 1.2. Spec. Fields generally optional.
         var o = {
           // TODO: Use precise request date/time
@@ -104,26 +103,27 @@ class BlockCrawler extends EventEmitter {
           creator: AGENT.name,
           version: AGENT.version,
           //reporter:,
-          url: res.request.uri.href,
-          status: res.statusCode,
-          statusText: res.statusMessage,
+          url: url,
+          status: statusCode,
+          statusText: "",
         };
-
+    
         // When an entity blocks access to a resource and returns status 451, it
         // SHOULD include a "Link" HTTP header field [RFC5988]
-
+    
         // statusCode: 451,
         // statusMessage: 'Unavailable For Legal Reasons',
         //   link: '<https://www.reddit.com>; rel="blocked-by"',
-
+    
+        // TODO
+        /*
         var linkHeader = parseLinkHeader(res.headers['link']);
         if (linkHeader && linkHeader['blocked-by'])
           o.blockedBy = linkHeader['blocked-by'];
-
+        */
+    
         this.emit('found', o);
       }
-
-    }
 
   }
 
