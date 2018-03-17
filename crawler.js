@@ -138,17 +138,19 @@ class BlockCrawler extends EventEmitter {
     this.proxyUri = argv.proxy;
     this.redisserver = argv.redisserver;
     var _allowed_domains = argv.allowed_domains;
-    if(undefined != _allowed_domains) this.allowedDomains = _allowed_domains.split(",");
+    if (undefined != _allowed_domains) this.allowedDomains = _allowed_domains.split(",");
 
     var _crawleroptions = {
       interval: 500,
       concurrentRequestsLimit: 5
     }
-    if(this.redisserver) {
-      var _redis = URL.parse("tcp://"+ this.redisserver);
+    if (this.redisserver) {
+      var _redis = URL.parse("tcp://" + this.redisserver);
       _crawleroptions["urlList"] = new supercrawler.RedisUrlList({
-        port: _redis.port,
-        host: _redis.hostname
+        redis: {
+          port: _redis.port,
+          host: _redis.hostname
+        }
       })
     }
     this.c = new supercrawler.Crawler(_crawleroptions);
@@ -182,8 +184,8 @@ class BlockCrawler extends EventEmitter {
 
         _crawler.emit('found', res);
 
-      }else{
-        console.log("Passed: "+context.url + " Status: " + context.response.statusCode);
+      } else {
+        console.log("Passed: " + context.url + " Status: " + context.response.statusCode);
       }
     });
 
