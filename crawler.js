@@ -41,9 +41,9 @@ const AGENT = {
 
 
 class BlockCrawler extends EventEmitter {
-  constructor() {
+  constructor(argv) {
     super();
-    this.init();
+    this.init(argv);
   }
 
   // Test and possible transform url object
@@ -126,21 +126,24 @@ class BlockCrawler extends EventEmitter {
     };
   };
 
-  init() {
-    this.modes = [];
+  init(argv) {
+    this.modes = argv.mode;
+    this.verbose = !argv.quiet;
+    this.proxyUri = argv.proxy;
+    this.redisserver = argv.redisserver;
 
-    this.c = new supercrawler.Crawler({
-
-      // urlList: new supercrawler.RedisUrlList({
-      //   redis: {
-      //     port: 6379,
-      //     host: '127.0.0.1'
-      //   }
-      // }),
-
+    var _crawleroptions = {
       interval: 500,
       concurrentRequestsLimit: 5
-    });
+    }
+    if(this.redisserver) {
+      var _redis = URL.parse("tcp://"+ this.redisserver);
+      _crawleroptions["redis"] = {
+        port: _redis.port,
+        host: _redis.hostname
+      }
+    }
+    this.c = new supercrawler.Crawler(_crawleroptions);
 
     console.log("Installed: " + this.c);
 
