@@ -115,6 +115,12 @@ class BlockCrawler extends EventEmitter {
           return null;
         }
 
+        if (typeof opts.hostnames !== "undefined") {
+          if (opts.hostnames.indexOf(hostname) === -1) {
+            return null;
+          }
+        }
+
         return urlMod.format({
           protocol: urlObj.protocol,
           auth: urlObj.auth,
@@ -131,6 +137,8 @@ class BlockCrawler extends EventEmitter {
     this.verbose = !argv.quiet;
     this.proxyUri = argv.proxy;
     this.redisserver = argv.redisserver;
+    var _allowed_domains = argv.allowed_domains;
+    this.allowedDomains = _allowed_domains.split(",");
 
     var _crawleroptions = {
       interval: 500,
@@ -147,18 +155,12 @@ class BlockCrawler extends EventEmitter {
 
     console.log("Installed: " + this.c);
 
+    var _crawler = this;
     this.c.addHandler("text/html", this._htmllinkparser({
       // Restrict discovered links to the following hostnames.
-      hostnames: {
-        "reddit.com": new UrlPattern('/r/:subreddit(/)'),
-        "www.reddit.com": new UrlPattern('/r/:subreddit(/)'),
-        "redditlist.com": new UrlPattern('/nsfw(?page=:pg)'),
-        "dretzq.co.uk": null,
-        "httpbin.org": null
-      }
+      hostnames: _crawler.allowedDomains
     }));
 
-    var _crawler = this;
     this.c.addHandler(function(context) {
       if (context.response.statusCode == 451) {
         var res = {

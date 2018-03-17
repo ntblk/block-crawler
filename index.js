@@ -47,6 +47,11 @@ const argv = require('yargs')
     type: 'string',
     description: 'IP address and port of redis server'
   })
+  .option('allowed_domains', {
+    type: 'string',
+    description: 'Comma-separeted list of crawling allowed domains',
+    default: "*"
+  })
   //.demandCommand(1)
   .argv;
 
