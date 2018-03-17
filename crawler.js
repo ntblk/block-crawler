@@ -146,10 +146,10 @@ class BlockCrawler extends EventEmitter {
     }
     if(this.redisserver) {
       var _redis = URL.parse("tcp://"+ this.redisserver);
-      _crawleroptions["redis"] = {
+      _crawleroptions["urlList"] = new supercrawler.RedisUrlList({
         port: _redis.port,
         host: _redis.hostname
-      }
+      })
     }
     this.c = new supercrawler.Crawler(_crawleroptions);
 
