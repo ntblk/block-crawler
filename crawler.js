@@ -25,8 +25,7 @@
 A crawler module to detect legally restricted web content:
   https://tools.ietf.org/html/rfc7725
 */
-const Crawler = require('crawler');
-const seenreq = require('seenreq');
+var supercrawler = require("supercrawler");
 const URL = require('url');
 const parseLinkHeader = require('parse-link-header');
 const UrlPattern = require('url-pattern');
@@ -45,18 +44,44 @@ class BlockCrawler extends EventEmitter {
   }
 
   init() {
-    this.seen = new seenreq();
     this.modes = [];
 
-    this.c = new Crawler({
-        maxConnections : 10,
-        timeout : 15000,
-        maxRedirects : 3,
-        // FIXME: Make userAgent configurable. Some sites running ModSecurity don't accept with the default.
-        userAgent : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.89 Safari/537.36',
-        // This will be called for each crawled page
-        callback : this.processResponse.bind(this)
+    this.c = new supercrawler.Crawler({
+
+        /*urlList: new supercrawler.RedisUrlList({
+            redis: {
+              port: 6379,
+              host: '127.0.0.1'
+            }
+        }), */
+        
+        interval: 500,
+        concurrentRequestsLimit: 5
     });
+    
+    console.log("Installed: " + this.c);
+    
+    this.c.on("crawlurl", function(url) {
+        console.log("Crawling: " + url);
+    });
+    
+    this.c.on("crawledurl", function(url, errorCode, statusCode) {
+        console.log("Crawled: " + url + " (" + statusCode + ")");
+    });
+
+    var crwl = this.c;
+    this.c.on("urllistcomplete", function() {
+       console.log("Done");
+       crwl.stop(); 
+    });
+
+    this.c.addHandler("text/html", supercrawler.handlers.htmlLinkParser(
+
+    ));
+    this.c.addHandler(function (context) {
+      console.log("Processed " + context.url);
+    });
+    
   }
 
   processResponse (error, res, done) {
@@ -184,6 +209,8 @@ class BlockCrawler extends EventEmitter {
 
     // TODO: Limit domain, URL etc.
 
+
+
     var base_url = res ? res.request.uri.href : '';
     //var full_url = res.request.uri.resolve(href);
     // TODO: Respect meta base URL tag?
@@ -201,26 +228,21 @@ class BlockCrawler extends EventEmitter {
       return;
 
     var full_url = uri.href;
-    try {
-      if (this.seen.exists(full_url))
-        return;
-    } catch (err) {
-      // normalize() : URIError: URI malformed
-      return;
-    }
 
     if (this.verbose)
       console.error(full_url);
 
-    // FIXME: Avoid sending empty string as referer when !req
-    this.c.queue({
-      uri: full_url,
-      referer: base_url,
-    });
+    this.c.getUrlList().insertIfNotExists(new supercrawler.Url({
+      url: full_url
+    }));
   }
 
   queue (url) {
     this.enqueue(url);
+  }
+  
+  start() {
+      this.c.start();
   }
 }
 

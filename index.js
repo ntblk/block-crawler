@@ -80,5 +80,7 @@ axios.get('https://api.ipify.org')
 .then(res => {
   externalIP = res.data;
 }).then(() => {
+  console.log("External IP: " + externalIP);
   argv._.forEach(url => bc.queue(url));
+  bc.start();
 });
