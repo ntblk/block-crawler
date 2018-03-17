@@ -43,16 +43,22 @@ const argv = require('yargs')
     type: 'string',
     description: 'Post JSON observations to this URL'
   })
+  .option('redisserver', {
+    type: 'string',
+    description: 'IP address and port of redis server'
+  })
+  .option('allowed_domains', {
+    type: 'string',
+    description: 'Comma-separeted list of crawling allowed domains',
+    default: "*"
+  })
   //.demandCommand(1)
   .argv;
 
 
 var externalIP;
 
-var bc = new BlockCrawler();
-bc.modes = argv.mode;
-bc.verbose = !argv.quiet;
-bc.proxyUri = argv.proxy;
+var bc = new BlockCrawler(argv);
 
 bc.on('found', res => {
 

@@ -41,9 +41,9 @@ const AGENT = {
 
 
 class BlockCrawler extends EventEmitter {
-  constructor() {
+  constructor(argv) {
     super();
-    this.init();
+    this.init(argv);
   }
 
   // Test and possible transform url object
@@ -115,6 +115,12 @@ class BlockCrawler extends EventEmitter {
           return null;
         }
 
+        if (typeof opts.hostnames !== "undefined") {
+          if (opts.hostnames.indexOf(hostname) === -1) {
+            return null;
+          }
+        }
+
         return urlMod.format({
           protocol: urlObj.protocol,
           auth: urlObj.auth,
@@ -126,36 +132,35 @@ class BlockCrawler extends EventEmitter {
     };
   };
 
-  init() {
-    this.modes = [];
+  init(argv) {
+    this.modes = argv.mode;
+    this.verbose = !argv.quiet;
+    this.proxyUri = argv.proxy;
+    this.redisserver = argv.redisserver;
+    var _allowed_domains = argv.allowed_domains;
+    this.allowedDomains = _allowed_domains.split(",");
 
-    this.c = new supercrawler.Crawler({
-
-      // urlList: new supercrawler.RedisUrlList({
-      //   redis: {
-      //     port: 6379,
-      //     host: '127.0.0.1'
-      //   }
-      // }),
-
+    var _crawleroptions = {
       interval: 500,
       concurrentRequestsLimit: 5
-    });
+    }
+    if(this.redisserver) {
+      var _redis = URL.parse("tcp://"+ this.redisserver);
+      _crawleroptions["redis"] = {
+        port: _redis.port,
+        host: _redis.hostname
+      }
+    }
+    this.c = new supercrawler.Crawler(_crawleroptions);
 
     console.log("Installed: " + this.c);
 
+    var _crawler = this;
     this.c.addHandler("text/html", this._htmllinkparser({
       // Restrict discovered links to the following hostnames.
-      hostnames: {
-        "reddit.com": new UrlPattern('/r/:subreddit(/)'),
-        "www.reddit.com": new UrlPattern('/r/:subreddit(/)'),
-        "redditlist.com": new UrlPattern('/nsfw(?page=:pg)'),
-        "dretzq.co.uk": null,
-        "httpbin.org": null
-      }
+      hostnames: _crawler.allowedDomains
     }));
 
-    var _crawler = this;
     this.c.addHandler(function(context) {
       if (context.response.statusCode == 451) {
         var res = {
