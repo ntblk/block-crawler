@@ -69,6 +69,10 @@ class BlockCrawler extends EventEmitter {
     this.c.on("crawledurl", function(url, errorCode, statusCode) {
         console.log("Crawled: " + url + " (" + statusCode + ")");
     });
+    
+    this.c.on("httpError", function(err, url) {
+       console.log("Error: " + url + " (" + err.statusCode + ")"); 
+    });
 
     var crwl = this.c;
     this.c.on("urllistcomplete", function() {
@@ -119,54 +123,10 @@ class BlockCrawler extends EventEmitter {
         this.emit('found', o);
       }
 
-      if (res.statusCode === 200) {
-        this.scrape(res);
-      }
     }
 
-    done();
   }
 
-  scrape (res) {
-    var $ = res.$;
-    //console.log($.text());
-
-    // TODO: Just rely on $ null-check instead of using content_type here?
-    var content_type = res.headers['content-type'.toLowerCase()];
-    if (!typeis(content_type,['html','xhtml'])){
-      return;
-    }
-    //console.log($("title").text());
-    $('a').each((index, node) => {
-      var $node = $(node);
-      var rel = $node.attr('rel') || '';
-      rel = rel.split(/ +/);
-      if (rel.indexOf('nofollow') !== -1)
-        return;
-      var href = $node.attr('href');
-      if(!href)
-        return;
-      var href = href.split('#')[0];
-      this.enqueue(href, res);
-    });
-    $('iframe').each((index, node) => {
-      var $node = $(node);
-      /* No rel attribute in iframe specs.
-      * var rel = $node.attr('rel') || '';
-      * rel = rel.split(/ +/);
-      * if (rel.indexOf('nofollow') !== -1)
-      *   return;
-      */
-      var src = $node.attr('src');
-      if(!src)
-        return;
-      var src = src.split('#')[0];
-      this.enqueue(src, res);
-      
-      //TODO check srcdoc attribute
-
-    });
-  }
 
   // Test and possible transform url object
   // TODO: make arg immutable
@@ -209,8 +169,6 @@ class BlockCrawler extends EventEmitter {
   enqueue (href, res) {
 
     // TODO: Limit domain, URL etc.
-
-
 
     var base_url = res ? res.request.uri.href : '';
     //var full_url = res.request.uri.resolve(href);
