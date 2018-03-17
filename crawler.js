@@ -49,31 +49,31 @@ class BlockCrawler extends EventEmitter {
   // Test and possible transform url object
   // TODO: make arg immutable
   shouldCrawl(uri) {
-    if (undefined == this || this.modes.indexOf('reddit') !== -1) {
-      // TODO: Use the pattern for this instead?
-      // if (uri.hostname === 'reddit.com' || uri.hostname === 'www.reddit.com') {
-      //   var pattern = new UrlPattern('/r/:subreddit(/)');
-      //
-      //   // https://github.com/snd/url-pattern
-      //   var parts = pattern.match(uri.pathname);
-      //
-      //   // Upgrade to HTTPS
-      //   // FIXME: Avoid this upgrade to detect middle-box blocking
-      //   if (uri.protocol === 'http:')
-      //     uri.protocol = 'https:';
-      //   //if (uri.protocol === 'https:')
-      //   //  uri.protocol = 'http:';
-      //
-      //   return !!parts;
-      // } else if (uri.hostname === 'redditlist.com') {
-      //   // TODO: just use a regex instead of pattern?
-      //   var pattern = new UrlPattern('/nsfw(?page=:pg)');
-      //   var parts = pattern.match(uri.pathname);
-      //   return !!parts;
-      // }
-
-      // return false;
-    }
+    // if (undefined == this || this.modes.indexOf('reddit') !== -1) {
+    //   // TODO: Use the pattern for this instead?
+    //   if (uri.hostname === 'reddit.com' || uri.hostname === 'www.reddit.com') {
+    //     var pattern = new UrlPattern('/r/:subreddit(/)');
+    //
+    //     // https://github.com/snd/url-pattern
+    //     var parts = pattern.match(uri.pathname);
+    //
+    //     // Upgrade to HTTPS
+    //     // FIXME: Avoid this upgrade to detect middle-box blocking
+    //     if (uri.protocol === 'http:')
+    //       uri.protocol = 'https:';
+    //     //if (uri.protocol === 'https:')
+    //     //  uri.protocol = 'http:';
+    //
+    //     return !!parts;
+    //   } else if (uri.hostname === 'redditlist.com') {
+    //     // TODO: just use a regex instead of pattern?
+    //     var pattern = new UrlPattern('/nsfw(?page=:pg)');
+    //     var parts = pattern.match(uri.pathname);
+    //     return !!parts;
+    //   }
+    //
+    //   // return false;
+    // }
     if (uri.hostname == "")
       return false;
     if (uri.protocol != 'http:' && uri.protocol != 'https:')
@@ -183,7 +183,7 @@ class BlockCrawler extends EventEmitter {
         _crawler.emit('found', res);
 
       }else{
-        console.log("Passed: "+context.url + " Status: " + ontext.response.statusCode);
+        console.log("Passed: "+context.url + " Status: " + context.response.statusCode);
       }
     });
 
