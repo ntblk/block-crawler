@@ -49,8 +49,7 @@ const argv = require('yargs')
   })
   .option('allowed_domains', {
     type: 'string',
-    description: 'Comma-separeted list of crawling allowed domains',
-    default: "*"
+    description: 'Comma-separeted list of crawling allowed domains'
   })
   //.demandCommand(1)
   .argv;

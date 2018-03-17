@@ -138,7 +138,7 @@ class BlockCrawler extends EventEmitter {
     this.proxyUri = argv.proxy;
     this.redisserver = argv.redisserver;
     var _allowed_domains = argv.allowed_domains;
-    this.allowedDomains = _allowed_domains.split(",");
+    if(undefined != _allowed_domains) this.allowedDomains = _allowed_domains.split(",");
 
     var _crawleroptions = {
       interval: 500,
