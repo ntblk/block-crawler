@@ -26,18 +26,14 @@ const Base64 = require('js-base64').Base64;
 const axios = require('axios');
 
 const argv = require('yargs')
-  .option('quiet', {
-    alias: 'q',
+  .option('debug', {
+    alias: 'd',
     type: 'boolean',
     default: false
   })
   .option('obfuscate', {
     type: 'boolean',
     default: false
-  })
-  .option('mode', {
-    type: 'string',
-    default: [],
   })
   .option('collector', {
     type: 'string',
@@ -49,7 +45,12 @@ const argv = require('yargs')
   })
   .option('allowed_domains', {
     type: 'string',
-    description: 'Comma-separeted list of crawling allowed domains'
+    description: 'hostname:UrlPattern JSON object for allowed domains'
+  })
+  .option('force_https',{
+    type: 'boolean',
+    description: "Force https instead of http",
+    default: true
   })
   //.demandCommand(1)
   .argv;

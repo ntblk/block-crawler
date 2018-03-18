@@ -48,37 +48,26 @@ class BlockCrawler extends EventEmitter {
 
   // Test and possible transform url object
   // TODO: make arg immutable
-  shouldCrawl(uri) {
-    if (undefined == this || this.modes.indexOf('reddit') !== -1) {
-      // TODO: Use the pattern for this instead?
-      if (uri.hostname === 'reddit.com' || uri.hostname === 'www.reddit.com') {
-        var pattern = new UrlPattern('/r/:subreddit(/)');
-
-        // https://github.com/snd/url-pattern
-        var parts = pattern.match(uri.pathname);
-
-        // Upgrade to HTTPS
-        // FIXME: Avoid this upgrade to detect middle-box blocking
-        if (uri.protocol === 'http:')
-          uri.protocol = 'https:';
-        //if (uri.protocol === 'https:')
-        //  uri.protocol = 'http:';
-
-        return !!parts;
-      } else if (uri.hostname === 'redditlist.com') {
-        // TODO: just use a regex instead of pattern?
-        var pattern = new UrlPattern('/nsfw(?page=:pg)');
-        var parts = pattern.match(uri.pathname);
-        return !!parts;
+  shouldCrawl(uri,allowedDomains) {
+    if (typeof uri == "string") {
+      try {
+        uri = URL.parse(uri)
+      } catch (err) {
+        console.error(err)
       }
-
-      // return false;
     }
-    if (uri.hostname == "")
+
+    if (!(uri.hostname in allowedDomains)) {
       return false;
-    if (uri.protocol != 'http:' && uri.protocol != 'https:')
-      return false;
-    return true;
+    } else {
+      var pattern = new UrlPattern(allowedDomains[uri.hostname]);
+      var parts = pattern.match(uri.pathname);
+      if (parts){
+        return true;
+      }else{
+        return false;
+      }
+    }
   }
 
   _htmllinkparser(opts) {
@@ -86,6 +75,8 @@ class BlockCrawler extends EventEmitter {
       opts = {};
     }
     var shouldCrawl = this.shouldCrawl;
+    var allowedDomains = this.allowedDomains;
+    var forceHttps = this.forceHttps;
     return function(context) {
 
       var $;
@@ -103,26 +94,23 @@ class BlockCrawler extends EventEmitter {
         targetHref = $this.attr("href");
         absoluteTargetUrl = urlMod.resolve(context.url, targetHref);
         urlObj = urlMod.parse(absoluteTargetUrl);
-        protocol = urlObj.protocol;
+        if(forceHttps){
+          protocol = 'https:'
+        }else{
+          protocol = urlObj.protocol;
+        }
         hostname = urlObj.hostname;
-
 
         if (protocol !== "http:" && protocol !== "https:") {
           return null;
         }
 
-        if (!(shouldCrawl(URL.parse(context.url)))) {
+        if (!(shouldCrawl(URL.parse(absoluteTargetUrl),allowedDomains))) {
           return null;
         }
 
-        if (typeof opts.hostnames !== "undefined") {
-          if (opts.hostnames.indexOf(hostname) === -1) {
-            return null;
-          }
-        }
-
         return urlMod.format({
-          protocol: urlObj.protocol,
+          protocol: protocol,
           auth: urlObj.auth,
           host: urlObj.host,
           pathname: urlObj.pathname,
@@ -133,33 +121,39 @@ class BlockCrawler extends EventEmitter {
   };
 
   init(argv) {
-    this.modes = argv.mode;
     this.verbose = !argv.quiet;
     this.proxyUri = argv.proxy;
     this.redisserver = argv.redisserver;
+    this.debug = argv.debug;
+    this.forceHttps = argv.force_https;
     var _allowed_domains = argv.allowed_domains;
-    if(undefined != _allowed_domains) this.allowedDomains = _allowed_domains.split(",");
-
+    if (undefined != _allowed_domains) {
+      try{
+        this.allowedDomains = JSON.parse(_allowed_domains);
+      }catch(err){
+        console.error(err);
+        return;
+      }
+    }
     var _crawleroptions = {
       interval: 500,
       concurrentRequestsLimit: 5
     }
-    if(this.redisserver) {
-      var _redis = URL.parse("tcp://"+ this.redisserver);
-      _crawleroptions["redis"] = {
-        port: _redis.port,
-        host: _redis.hostname
-      }
+    if (this.redisserver) {
+      var _redis = URL.parse("tcp://" + this.redisserver);
+      _crawleroptions["urlList"] = new supercrawler.RedisUrlList({
+        redis: {
+          port: _redis.port,
+          host: _redis.hostname
+        }
+      })
     }
     this.c = new supercrawler.Crawler(_crawleroptions);
 
-    console.log("Installed: " + this.c);
+    if(this.debug) console.log("Installed: " + this.c);
 
     var _crawler = this;
-    this.c.addHandler("text/html", this._htmllinkparser({
-      // Restrict discovered links to the following hostnames.
-      hostnames: _crawler.allowedDomains
-    }));
+    this.c.addHandler("text/html", this._htmllinkparser({}));
 
     this.c.addHandler(function(context) {
       if (context.response.statusCode == 451) {
@@ -182,12 +176,22 @@ class BlockCrawler extends EventEmitter {
 
         _crawler.emit('found', res);
 
+      } else {
+        console.log("Passed: " + context.url + " Status: " + context.response.statusCode);
       }
     });
 
     this.c.on("httpError", function(err, url) {
       console.log("Error: " + url + " (" + err.statusCode + ")");
     });
+
+    this.c.on("crawlurl",function(url){
+      if(_crawler.debug) console.log("Now Crawling: " + url);
+    })
+
+    this.c.on("crawledurl",function(url,errorcode,statuscode){
+      if(_crawler.debug) console.log("Finished: " + url + ", " + statuscode);
+    })
 
     var crwl = this.c;
     this.c.on("urllistcomplete", function() {
@@ -214,7 +218,7 @@ class BlockCrawler extends EventEmitter {
       return;
     }
 
-    if (!this.shouldCrawl(uri))
+    if (!this.shouldCrawl(uri,this.allowedDomains))
       return;
 
     var full_url = uri.href;
