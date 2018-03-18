@@ -47,6 +47,11 @@ const argv = require('yargs')
     type: 'string',
     description: 'hostname:UrlPattern JSON object for allowed domains'
   })
+  .option('force_https',{
+    type: 'boolean',
+    description: "Force https instead of http",
+    default: true
+  })
   //.demandCommand(1)
   .argv;
 

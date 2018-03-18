@@ -76,6 +76,7 @@ class BlockCrawler extends EventEmitter {
     }
     var shouldCrawl = this.shouldCrawl;
     var allowedDomains = this.allowedDomains;
+    var forceHttps = this.forceHttps;
     return function(context) {
 
       var $;
@@ -93,7 +94,11 @@ class BlockCrawler extends EventEmitter {
         targetHref = $this.attr("href");
         absoluteTargetUrl = urlMod.resolve(context.url, targetHref);
         urlObj = urlMod.parse(absoluteTargetUrl);
-        protocol = urlObj.protocol;
+        if(forceHttps){
+          protocol = 'https'
+        }else{
+          protocol = urlObj.protocol;
+        }
         hostname = urlObj.hostname;
 
 
@@ -121,6 +126,7 @@ class BlockCrawler extends EventEmitter {
     this.proxyUri = argv.proxy;
     this.redisserver = argv.redisserver;
     this.debug = argv.debug;
+    this.forceHttps = argv.force_https;
     var _allowed_domains = argv.allowed_domains;
     if (undefined != _allowed_domains) {
       try{
