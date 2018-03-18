@@ -95,12 +95,11 @@ class BlockCrawler extends EventEmitter {
         absoluteTargetUrl = urlMod.resolve(context.url, targetHref);
         urlObj = urlMod.parse(absoluteTargetUrl);
         if(forceHttps){
-          protocol = 'https'
+          protocol = 'https:'
         }else{
           protocol = urlObj.protocol;
         }
         hostname = urlObj.hostname;
-
 
         if (protocol !== "http:" && protocol !== "https:") {
           return null;
@@ -111,7 +110,7 @@ class BlockCrawler extends EventEmitter {
         }
 
         return urlMod.format({
-          protocol: urlObj.protocol,
+          protocol: protocol,
           auth: urlObj.auth,
           host: urlObj.host,
           pathname: urlObj.pathname,
