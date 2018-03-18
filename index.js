@@ -26,8 +26,8 @@ const Base64 = require('js-base64').Base64;
 const axios = require('axios');
 
 const argv = require('yargs')
-  .option('quiet', {
-    alias: 'q',
+  .option('debug', {
+    alias: 'd',
     type: 'boolean',
     default: false
   })

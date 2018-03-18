@@ -101,7 +101,7 @@ class BlockCrawler extends EventEmitter {
           return null;
         }
 
-        if (!(shouldCrawl(URL.parse(context.url),allowedDomains))) {
+        if (!(shouldCrawl(URL.parse(absoluteTargetUrl),allowedDomains))) {
           return null;
         }
 
@@ -120,6 +120,7 @@ class BlockCrawler extends EventEmitter {
     this.verbose = !argv.quiet;
     this.proxyUri = argv.proxy;
     this.redisserver = argv.redisserver;
+    this.debug = argv.debug;
     var _allowed_domains = argv.allowed_domains;
     if (undefined != _allowed_domains) {
       try{
@@ -144,7 +145,7 @@ class BlockCrawler extends EventEmitter {
     }
     this.c = new supercrawler.Crawler(_crawleroptions);
 
-    console.log("Installed: " + this.c);
+    if(this.debug) console.log("Installed: " + this.c);
 
     var _crawler = this;
     this.c.addHandler("text/html", this._htmllinkparser({}));
@@ -178,6 +179,14 @@ class BlockCrawler extends EventEmitter {
     this.c.on("httpError", function(err, url) {
       console.log("Error: " + url + " (" + err.statusCode + ")");
     });
+
+    this.c.on("crawlurl",function(url){
+      if(_crawler.debug) console.log("Now Crawling: " + url);
+    })
+
+    this.c.on("crawledurl",function(url,errorcode,statuscode){
+      if(_crawler.debug) console.log("Finished: " + url + ", " + statuscode);
+    })
 
     var crwl = this.c;
     this.c.on("urllistcomplete", function() {
