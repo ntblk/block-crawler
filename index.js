@@ -35,10 +35,6 @@ const argv = require('yargs')
     type: 'boolean',
     default: false
   })
-  .option('mode', {
-    type: 'string',
-    default: [],
-  })
   .option('collector', {
     type: 'string',
     description: 'Post JSON observations to this URL'
@@ -49,7 +45,7 @@ const argv = require('yargs')
   })
   .option('allowed_domains', {
     type: 'string',
-    description: 'Comma-separeted list of crawling allowed domains'
+    description: 'hostname:UrlPattern JSON object for allowed domains'
   })
   //.demandCommand(1)
   .argv;
